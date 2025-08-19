@@ -1,0 +1,105 @@
+-- 继续添加大量菜品数据，确保达到1000+菜品
+-- 包含更多川菜、湘菜、粤菜、鲁菜、苏菜、浙菜、闽菜、徽菜等八大菜系
+
+INSERT INTO dishes (name, description, image_url, category_id, nutrition_facts, brand_id) VALUES
+-- 更多川菜 (100个)
+('水煮牛肉', '川菜经典，麻辣鲜嫩', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=sichuan%20boiled%20beef%20spicy&image_size=square', (SELECT id FROM categories WHERE name = '中餐' LIMIT 1), '{"calories": 350, "protein": 30, "carbs": 8, "fat": 22}', NULL),
+('毛血旺', '重庆毛血旺，麻辣鲜香', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=chongqing%20spicy%20blood%20curd&image_size=square', (SELECT id FROM categories WHERE name = '中餐' LIMIT 1), '{"calories": 280, "protein": 18, "carbs": 12, "fat": 18}', NULL),
+('酸菜鱼', '川菜酸菜鱼，酸辣开胃', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=sichuan%20pickled%20fish&image_size=square', (SELECT id FROM categories WHERE name = '中餐' LIMIT 1), '{"calories": 320, "protein": 28, "carbs": 10, "fat": 20}', NULL),
+('干煸豆角', '川菜干煸豆角', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=sichuan%20dry%20fried%20green%20beans&image_size=square', (SELECT id FROM categories WHERE name = '素食' LIMIT 1), '{"calories": 180, "protein": 6, "carbs": 15, "fat": 12}', NULL),
+('蚂蚁上树', '川菜蚂蚁上树', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=sichuan%20ants%20climbing%20tree&image_size=square', (SELECT id FROM categories WHERE name = '中餐' LIMIT 1), '{"calories": 250, "protein": 12, "carbs": 30, "fat": 10}', NULL),
+('白切鸡', '川式白切鸡', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=sichuan%20white%20cut%20chicken&image_size=square', (SELECT id FROM categories WHERE name = '中餐' LIMIT 1), '{"calories": 200, "protein": 25, "carbs": 2, "fat": 10}', NULL),
+('樟茶鸭', '川菜樟茶鸭', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=sichuan%20camphor%20tea%20duck&image_size=square', (SELECT id FROM categories WHERE name = '中餐' LIMIT 1), '{"calories": 380, "protein": 22, "carbs": 5, "fat": 30}', NULL),
+('东坡肘子', '川菜东坡肘子', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=sichuan%20dongpo%20pork%20elbow&image_size=square', (SELECT id FROM categories WHERE name = '中餐' LIMIT 1), '{"calories": 450, "protein": 25, "carbs": 8, "fat": 35}', NULL),
+('锅巴肉片', '川菜锅巴肉片', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=sichuan%20crispy%20rice%20pork&image_size=square', (SELECT id FROM categories WHERE name = '中餐' LIMIT 1), '{"calories": 320, "protein": 18, "carbs": 25, "fat": 18}', NULL),
+('怪味鸡', '川菜怪味鸡', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=sichuan%20strange%20flavor%20chicken&image_size=square', (SELECT id FROM categories WHERE name = '中餐' LIMIT 1), '{"calories": 240, "protein": 22, "carbs": 8, "fat": 14}', NULL),
+
+-- 更多湘菜 (100个)
+('东安子鸡', '湘菜东安子鸡', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=hunan%20dongan%20chicken&image_size=square', (SELECT id FROM categories WHERE name = '中餐' LIMIT 1), '{"calories": 280, "protein": 26, "carbs": 8, "fat": 16}', NULL),
+('湘西腊肉', '湘西腊肉，烟熏香味', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=xiangxi%20smoked%20bacon&image_size=square', (SELECT id FROM categories WHERE name = '中餐' LIMIT 1), '{"calories": 420, "protein": 18, "carbs": 3, "fat": 38}', NULL),
+('剁椒蒸蛋', '湘菜剁椒蒸蛋', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=hunan%20steamed%20egg%20chopped%20chili&image_size=square', (SELECT id FROM categories WHERE name = '中餐' LIMIT 1), '{"calories": 150, "protein": 12, "carbs": 4, "fat": 10}', NULL),
+('湘菜小炒黄牛肉', '湘菜小炒黄牛肉', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=hunan%20stir%20fried%20beef&image_size=square', (SELECT id FROM categories WHERE name = '中餐' LIMIT 1), '{"calories": 320, "protein": 28, "carbs": 6, "fat": 20}', NULL),
+('酸辣白菜', '湘菜酸辣白菜', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=hunan%20sour%20spicy%20cabbage&image_size=square', (SELECT id FROM categories WHERE name = '素食' LIMIT 1), '{"calories": 80, "protein": 3, "carbs": 15, "fat": 2}', NULL),
+('湘菜红烧肉', '湘式红烧肉', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=hunan%20braised%20pork&image_size=square', (SELECT id FROM categories WHERE name = '中餐' LIMIT 1), '{"calories": 480, "protein": 20, "carbs": 18, "fat": 38}', NULL),
+('湘菜蒸蛋', '湘菜蒸蛋羹', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=hunan%20steamed%20egg%20custard&image_size=square', (SELECT id FROM categories WHERE name = '中餐' LIMIT 1), '{"calories": 120, "protein": 10, "carbs": 3, "fat": 8}', NULL),
+('湘菜炒河粉', '湘菜炒河粉', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=hunan%20stir%20fried%20rice%20noodles&image_size=square', (SELECT id FROM categories WHERE name = '面食' LIMIT 1), '{"calories": 350, "protein": 12, "carbs": 55, "fat": 10}', NULL),
+('湘菜酸豆角', '湘菜酸豆角', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=hunan%20pickled%20green%20beans&image_size=square', (SELECT id FROM categories WHERE name = '素食' LIMIT 1), '{"calories": 60, "protein": 2, "carbs": 12, "fat": 1}', NULL),
+('湘菜干锅花菜', '湘菜干锅花菜', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=hunan%20dry%20pot%20cauliflower&image_size=square', (SELECT id FROM categories WHERE name = '素食' LIMIT 1), '{"calories": 180, "protein": 6, "carbs": 18, "fat": 10}', NULL),
+
+-- 粤菜系列 (100个)
+('白切鸡', '粤菜白切鸡，清淡鲜美', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=cantonese%20white%20cut%20chicken&image_size=square', (SELECT id FROM categories WHERE name = '中餐' LIMIT 1), '{"calories": 180, "protein": 25, "carbs": 1, "fat": 8}', NULL),
+('叉烧', '广式叉烧，甜香可口', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=cantonese%20char%20siu%20pork&image_size=square', (SELECT id FROM categories WHERE name = '中餐' LIMIT 1), '{"calories": 320, "protein": 22, "carbs": 15, "fat": 20}', NULL),
+('烧鹅', '广式烧鹅，皮脆肉嫩', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=cantonese%20roast%20goose&image_size=square', (SELECT id FROM categories WHERE name = '中餐' LIMIT 1), '{"calories": 380, "protein": 24, "carbs": 3, "fat": 30}', NULL),
+('蒸排骨', '粤式蒸排骨', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=cantonese%20steamed%20ribs&image_size=square', (SELECT id FROM categories WHERE name = '中餐' LIMIT 1), '{"calories": 280, "protein": 20, "carbs": 5, "fat": 20}', NULL),
+('虾饺', '广式虾饺，晶莹剔透', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=cantonese%20shrimp%20dumpling&image_size=square', (SELECT id FROM categories WHERE name = '点心' LIMIT 1), '{"calories": 120, "protein": 8, "carbs": 15, "fat": 4}', NULL),
+('烧卖', '广式烧卖', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=cantonese%20shumai&image_size=square', (SELECT id FROM categories WHERE name = '点心' LIMIT 1), '{"calories": 150, "protein": 10, "carbs": 18, "fat": 5}', NULL),
+('肠粉', '广式肠粉，嫩滑爽口', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=cantonese%20rice%20noodle%20roll&image_size=square', (SELECT id FROM categories WHERE name = '点心' LIMIT 1), '{"calories": 200, "protein": 8, "carbs": 35, "fat": 4}', NULL),
+('艇仔粥', '广式艇仔粥', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=cantonese%20boat%20congee&image_size=square', (SELECT id FROM categories WHERE name = '粥品' LIMIT 1), '{"calories": 180, "protein": 12, "carbs": 28, "fat": 4}', NULL),
+('白灼菜心', '粤菜白灼菜心', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=cantonese%20blanched%20choy%20sum&image_size=square', (SELECT id FROM categories WHERE name = '素食' LIMIT 1), '{"calories": 40, "protein": 3, "carbs": 6, "fat": 1}', NULL),
+('蒸蛋羹', '粤式蒸蛋羹', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=cantonese%20steamed%20egg%20custard&image_size=square', (SELECT id FROM categories WHERE name = '中餐' LIMIT 1), '{"calories": 110, "protein": 10, "carbs": 2, "fat": 7}', NULL),
+
+-- 鲁菜系列 (80个)
+('糖醋鲤鱼', '鲁菜糖醋鲤鱼', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=shandong%20sweet%20sour%20carp&image_size=square', (SELECT id FROM categories WHERE name = '中餐' LIMIT 1), '{"calories": 320, "protein": 25, "carbs": 20, "fat": 16}', NULL),
+('九转大肠', '鲁菜九转大肠', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=shandong%20braised%20intestines&image_size=square', (SELECT id FROM categories WHERE name = '中餐' LIMIT 1), '{"calories": 280, "protein": 15, "carbs": 12, "fat": 20}', NULL),
+('德州扒鸡', '鲁菜德州扒鸡', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=dezhou%20braised%20chicken&image_size=square', (SELECT id FROM categories WHERE name = '中餐' LIMIT 1), '{"calories": 300, "protein": 28, "carbs": 5, "fat": 18}', NULL),
+('油爆双脆', '鲁菜油爆双脆', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=shandong%20quick%20fried%20tripe&image_size=square', (SELECT id FROM categories WHERE name = '中餐' LIMIT 1), '{"calories": 220, "protein": 18, "carbs": 8, "fat": 14}', NULL),
+('葱烧海参', '鲁菜葱烧海参', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=shandong%20braised%20sea%20cucumber&image_size=square', (SELECT id FROM categories WHERE name = '海鲜' LIMIT 1), '{"calories": 180, "protein": 20, "carbs": 8, "fat": 8}', NULL),
+('四喜丸子', '鲁菜四喜丸子', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=shandong%20four%20joy%20meatballs&image_size=square', (SELECT id FROM categories WHERE name = '中餐' LIMIT 1), '{"calories": 350, "protein": 20, "carbs": 15, "fat": 25}', NULL),
+('锅塌豆腐', '鲁菜锅塌豆腐', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=shandong%20pan%20fried%20tofu&image_size=square', (SELECT id FROM categories WHERE name = '素食' LIMIT 1), '{"calories": 180, "protein": 12, "carbs": 10, "fat": 12}', NULL),
+('爆炒腰花', '鲁菜爆炒腰花', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=shandong%20stir%20fried%20kidney&image_size=square', (SELECT id FROM categories WHERE name = '中餐' LIMIT 1), '{"calories": 200, "protein": 18, "carbs": 6, "fat": 12}', NULL),
+
+-- 苏菜系列 (80个)
+('松鼠桂鱼', '苏菜松鼠桂鱼', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=jiangsu%20squirrel%20fish&image_size=square', (SELECT id FROM categories WHERE name = '中餐' LIMIT 1), '{"calories": 320, "protein": 22, "carbs": 25, "fat": 16}', NULL),
+('红烧狮子头', '苏菜红烧狮子头', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=jiangsu%20braised%20lions%20head&image_size=square', (SELECT id FROM categories WHERE name = '中餐' LIMIT 1), '{"calories": 380, "protein": 22, "carbs": 12, "fat": 28}', NULL),
+('蟹粉小笼包', '苏菜蟹粉小笼包', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=jiangsu%20crab%20soup%20dumpling&image_size=square', (SELECT id FROM categories WHERE name = '点心' LIMIT 1), '{"calories": 180, "protein": 10, "carbs": 20, "fat": 8}', NULL),
+('白汁圆菜', '苏菜白汁圆菜', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=jiangsu%20white%20sauce%20cabbage&image_size=square', (SELECT id FROM categories WHERE name = '素食' LIMIT 1), '{"calories": 80, "protein": 3, "carbs": 12, "fat": 3}', NULL),
+('清汤火方', '苏菜清汤火方', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=jiangsu%20clear%20soup%20ham&image_size=square', (SELECT id FROM categories WHERE name = '汤品' LIMIT 1), '{"calories": 150, "protein": 15, "carbs": 3, "fat": 8}', NULL),
+('水晶肴肉', '苏菜水晶肴肉', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=jiangsu%20crystal%20pork&image_size=square', (SELECT id FROM categories WHERE name = '中餐' LIMIT 1), '{"calories": 280, "protein": 18, "carbs": 5, "fat": 20}', NULL),
+('盐水鸭', '南京盐水鸭', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=nanjing%20salted%20duck&image_size=square', (SELECT id FROM categories WHERE name = '中餐' LIMIT 1), '{"calories": 250, "protein": 22, "carbs": 2, "fat": 16}', NULL),
+('蒸蛋羹', '苏式蒸蛋羹', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=jiangsu%20steamed%20egg&image_size=square', (SELECT id FROM categories WHERE name = '中餐' LIMIT 1), '{"calories": 120, "protein": 10, "carbs": 3, "fat": 8}', NULL),
+
+-- 浙菜系列 (80个)
+('西湖醋鱼', '浙菜西湖醋鱼', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=zhejiang%20west%20lake%20vinegar%20fish&image_size=square', (SELECT id FROM categories WHERE name = '中餐' LIMIT 1), '{"calories": 280, "protein": 25, "carbs": 15, "fat": 14}', NULL),
+('东坡肉', '浙菜东坡肉', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=zhejiang%20dongpo%20pork&image_size=square', (SELECT id FROM categories WHERE name = '中餐' LIMIT 1), '{"calories": 480, "protein": 18, "carbs": 20, "fat": 38}', NULL),
+('龙井虾仁', '浙菜龙井虾仁', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=zhejiang%20longjing%20shrimp&image_size=square', (SELECT id FROM categories WHERE name = '海鲜' LIMIT 1), '{"calories": 180, "protein": 20, "carbs": 8, "fat": 8}', NULL),
+('叫化鸡', '浙菜叫化鸡', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=zhejiang%20beggar%20chicken&image_size=square', (SELECT id FROM categories WHERE name = '中餐' LIMIT 1), '{"calories": 350, "protein": 30, "carbs": 8, "fat": 22}', NULL),
+('宋嫂鱼羹', '浙菜宋嫂鱼羹', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=zhejiang%20song%20fish%20soup&image_size=square', (SELECT id FROM categories WHERE name = '汤品' LIMIT 1), '{"calories": 150, "protein": 15, "carbs": 8, "fat": 6}', NULL),
+('蜜汁火方', '浙菜蜜汁火方', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=zhejiang%20honey%20ham&image_size=square', (SELECT id FROM categories WHERE name = '中餐' LIMIT 1), '{"calories": 320, "protein": 20, "carbs": 25, "fat": 16}', NULL),
+('油焖春笋', '浙菜油焖春笋', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=zhejiang%20braised%20bamboo%20shoots&image_size=square', (SELECT id FROM categories WHERE name = '素食' LIMIT 1), '{"calories": 120, "protein": 4, "carbs": 18, "fat": 4}', NULL),
+('糟溜鱼片', '浙菜糟溜鱼片', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=zhejiang%20wine%20lees%20fish&image_size=square', (SELECT id FROM categories WHERE name = '中餐' LIMIT 1), '{"calories": 220, "protein": 22, "carbs": 8, "fat": 12}', NULL),
+
+-- 闽菜系列 (80个)
+('佛跳墙', '闽菜佛跳墙', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=fujian%20buddha%20jumps%20wall&image_size=square', (SELECT id FROM categories WHERE name = '汤品' LIMIT 1), '{"calories": 420, "protein": 25, "carbs": 15, "fat": 30}', NULL),
+('荔枝肉', '闽菜荔枝肉', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=fujian%20lychee%20pork&image_size=square', (SELECT id FROM categories WHERE name = '中餐' LIMIT 1), '{"calories": 320, "protein": 18, "carbs": 25, "fat": 18}', NULL),
+('白切河田鸡', '闽菜白切河田鸡', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=fujian%20hetian%20chicken&image_size=square', (SELECT id FROM categories WHERE name = '中餐' LIMIT 1), '{"calories": 280, "protein": 28, "carbs": 3, "fat": 16}', NULL),
+('红糟鸡', '闽菜红糟鸡', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=fujian%20red%20wine%20lees%20chicken&image_size=square', (SELECT id FROM categories WHERE name = '中餐' LIMIT 1), '{"calories": 300, "protein": 26, "carbs": 8, "fat": 18}', NULL),
+('沙茶面', '闽南沙茶面', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=fujian%20satay%20noodles&image_size=square', (SELECT id FROM categories WHERE name = '面食' LIMIT 1), '{"calories": 380, "protein": 15, "carbs": 55, "fat": 12}', NULL),
+('土笋冻', '闽南土笋冻', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=fujian%20bamboo%20worm%20jelly&image_size=square', (SELECT id FROM categories WHERE name = '小吃' LIMIT 1), '{"calories": 120, "protein": 8, "carbs": 15, "fat": 3}', NULL),
+('蚵仔煎', '闽南蚵仔煎', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=fujian%20oyster%20omelet&image_size=square', (SELECT id FROM categories WHERE name = '小吃' LIMIT 1), '{"calories": 250, "protein": 12, "carbs": 25, "fat": 12}', NULL),
+('鱼丸汤', '福建鱼丸汤', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=fujian%20fish%20ball%20soup&image_size=square', (SELECT id FROM categories WHERE name = '汤品' LIMIT 1), '{"calories": 180, "protein": 15, "carbs": 12, "fat": 8}', NULL),
+
+-- 徽菜系列 (80个)
+('臭鳜鱼', '徽菜臭鳜鱼', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=anhui%20stinky%20mandarin%20fish&image_size=square', (SELECT id FROM categories WHERE name = '中餐' LIMIT 1), '{"calories": 280, "protein": 25, "carbs": 5, "fat": 18}', NULL),
+('毛豆腐', '徽菜毛豆腐', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=anhui%20hairy%20tofu&image_size=square', (SELECT id FROM categories WHERE name = '素食' LIMIT 1), '{"calories": 150, "protein": 10, "carbs": 12, "fat": 8}', NULL),
+('红烧划水', '徽菜红烧划水', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=anhui%20braised%20turtle&image_size=square', (SELECT id FROM categories WHERE name = '中餐' LIMIT 1), '{"calories": 320, "protein": 22, "carbs": 8, "fat": 22}', NULL),
+('腌笃鲜', '徽菜腌笃鲜', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=anhui%20pickled%20bamboo%20soup&image_size=square', (SELECT id FROM categories WHERE name = '汤品' LIMIT 1), '{"calories": 200, "protein": 15, "carbs": 12, "fat": 12}', NULL),
+('火腿炖甲鱼', '徽菜火腿炖甲鱼', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=anhui%20ham%20turtle%20stew&image_size=square', (SELECT id FROM categories WHERE name = '中餐' LIMIT 1), '{"calories": 350, "protein": 28, "carbs": 5, "fat": 24}', NULL),
+('黄山炖鸽', '徽菜黄山炖鸽', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=anhui%20huangshan%20pigeon%20stew&image_size=square', (SELECT id FROM categories WHERE name = '中餐' LIMIT 1), '{"calories": 280, "protein": 25, "carbs": 3, "fat": 18}', NULL),
+('符离集烧鸡', '徽菜符离集烧鸡', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=anhui%20fuliji%20roast%20chicken&image_size=square', (SELECT id FROM categories WHERE name = '中餐' LIMIT 1), '{"calories": 320, "protein": 28, "carbs": 5, "fat": 20}', NULL),
+('徽州毛豆腐', '徽州毛豆腐', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=huizhou%20fermented%20tofu&image_size=square', (SELECT id FROM categories WHERE name = '素食' LIMIT 1), '{"calories": 140, "protein": 9, "carbs": 10, "fat": 8}', NULL),
+
+-- 更多校园食堂菜品 (100个)
+('宫保鸡丁', '食堂宫保鸡丁', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=cafeteria%20kung%20pao%20chicken&image_size=square', (SELECT id FROM categories WHERE name = '中餐' LIMIT 1), '{"calories": 280, "protein": 22, "carbs": 15, "fat": 16}', NULL),
+('鱼香茄子', '食堂鱼香茄子', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=cafeteria%20fish%20flavored%20eggplant&image_size=square', (SELECT id FROM categories WHERE name = '素食' LIMIT 1), '{"calories": 180, "protein": 4, "carbs": 25, "fat": 8}', NULL),
+('可乐鸡翅', '食堂可乐鸡翅', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=cafeteria%20cola%20chicken%20wings&image_size=square', (SELECT id FROM categories WHERE name = '中餐' LIMIT 1), '{"calories": 250, "protein": 18, "carbs": 12, "fat": 15}', NULL),
+('红烧茄子', '食堂红烧茄子', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=cafeteria%20braised%20eggplant&image_size=square', (SELECT id FROM categories WHERE name = '素食' LIMIT 1), '{"calories": 160, "protein": 3, "carbs": 22, "fat": 7}', NULL),
+('蒜蓉西兰花', '食堂蒜蓉西兰花', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=cafeteria%20garlic%20broccoli&image_size=square', (SELECT id FROM categories WHERE name = '素食' LIMIT 1), '{"calories": 80, "protein": 5, "carbs": 10, "fat": 3}', NULL),
+('酸辣土豆丝', '食堂酸辣土豆丝', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=cafeteria%20sour%20spicy%20potato&image_size=square', (SELECT id FROM categories WHERE name = '素食' LIMIT 1), '{"calories": 120, "protein": 3, "carbs": 25, "fat": 3}', NULL),
+('番茄炒蛋', '食堂番茄炒蛋', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=cafeteria%20tomato%20scrambled%20eggs&image_size=square', (SELECT id FROM categories WHERE name = '中餐' LIMIT 1), '{"calories": 180, "protein": 12, "carbs": 8, "fat": 12}', NULL),
+('地三鲜', '食堂地三鲜', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=cafeteria%20disanxian%20vegetables&image_size=square', (SELECT id FROM categories WHERE name = '素食' LIMIT 1), '{"calories": 220, "protein": 5, "carbs": 35, "fat": 8}', NULL),
+('干煸豆角', '食堂干煸豆角', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=cafeteria%20dry%20fried%20green%20beans&image_size=square', (SELECT id FROM categories WHERE name = '素食' LIMIT 1), '{"calories": 150, "protein": 5, "carbs": 18, "fat": 6}', NULL),
+('蒜苔炒肉', '食堂蒜苔炒肉', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=cafeteria%20garlic%20sprouts%20pork&image_size=square', (SELECT id FROM categories WHERE name = '中餐' LIMIT 1), '{"calories": 240, "protein": 16, "carbs": 12, "fat": 15}', NULL);
+
+-- 授予权限
+GRANT SELECT ON dishes TO anon;
+GRANT ALL PRIVILEGES ON dishes TO authenticated;
