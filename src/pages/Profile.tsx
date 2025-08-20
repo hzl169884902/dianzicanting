@@ -107,7 +107,7 @@ export default function Profile() {
     }
     fetchDietRecords();
     fetchDishes();
-  }, [user, userProfile, fetchUserProfile, fetchDietRecords, fetchDishes]);
+  }, [user, userProfile]); // 移除函数依赖，避免无限循环
 
   // 更新本地资料数据
   useEffect(() => {

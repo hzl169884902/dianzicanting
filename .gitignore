@@ -23,3 +23,8 @@ dist-ssr
 *.sln
 *.sw?
 .vite
+
+# Node.js cache directories
+"Node.js安装目录/"
+node_cache/
+**/node_cache/

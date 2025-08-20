@@ -17,7 +17,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   useEffect(() => {
     // 初始化认证状态
     initialize();
-  }, [initialize]);
+  }, []); // 移除initialize依赖，避免无限循环
 
   // 设置加载超时
   useEffect(() => {

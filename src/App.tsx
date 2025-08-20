@@ -1,25 +1,30 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Toaster } from "sonner";
-import Home from "@/pages/Home";
-import Dishes from "@/pages/Dishes";
-import DishDetail from "@/pages/DishDetail";
-import DietRecord from "@/pages/DietRecord";
-import Recommendations from "@/pages/Recommendations";
-import Social from "@/pages/Social";
-import Reports from "@/pages/Reports";
-import Profile from "@/pages/Profile";
-import WeightLoss from "@/pages/WeightLoss";
-import SummerRecipes from "@/pages/SummerRecipes";
-import TasteAnalysis from "@/pages/TasteAnalysis";
 import Layout from "@/components/Layout";
-import Login from "@/pages/Login";
-import Register from "@/pages/Register";
-import QQDemo from "@/pages/auth/QQDemo";
-import WechatDemo from "@/pages/auth/WechatDemo";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import LogViewer from "@/components/LogViewer";
+import ErrorBoundary from "@/components/ErrorBoundary";
+import { PageLoader } from "@/components/LoadingSpinner";
 import { uiLog } from '@/utils/logger';
+
+// 使用React.lazy进行代码分割，提升首屏加载速度
+const Home = lazy(() => import("@/pages/Home"));
+const Dishes = lazy(() => import("@/pages/Dishes"));
+const DishDetail = lazy(() => import("@/pages/DishDetail"));
+const DietRecord = lazy(() => import("@/pages/DietRecord"));
+const Recommendations = lazy(() => import("@/pages/Recommendations"));
+const Social = lazy(() => import("@/pages/Social"));
+const Reports = lazy(() => import("@/pages/Reports"));
+const Profile = lazy(() => import("@/pages/Profile"));
+const WeightLoss = lazy(() => import("@/pages/WeightLoss"));
+const SummerRecipes = lazy(() => import("@/pages/SummerRecipes"));
+const TasteAnalysis = lazy(() => import("@/pages/TasteAnalysis"));
+const DishManagement = lazy(() => import("@/pages/DishManagement").then(module => ({ default: module.DishManagement })));
+const Login = lazy(() => import("@/pages/Login"));
+const Register = lazy(() => import("@/pages/Register"));
+const QQDemo = lazy(() => import("@/pages/auth/QQDemo"));
+const WechatDemo = lazy(() => import("@/pages/auth/WechatDemo"));
 
 export default function App() {
   const [showLogViewer, setShowLogViewer] = useState(false);
@@ -73,34 +78,37 @@ export default function App() {
   }, []);
 
   return (
-    <>
+    <ErrorBoundary>
       <Router>
-        <Routes>
-          {/* 认证相关路由 - 不使用Layout */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/auth/qq/demo" element={<QQDemo />} />
-          <Route path="/auth/wechat/demo" element={<WechatDemo />} />
-          
-          {/* 应用主要路由 - 使用Layout和认证保护 */}
-          <Route path="/" element={
-            <ProtectedRoute>
-              <Layout />
-            </ProtectedRoute>
-          }>
-            <Route index element={<Home />} />
-            <Route path="dishes" element={<Dishes />} />
-            <Route path="dishes/:id" element={<DishDetail />} />
-            <Route path="diet-record" element={<DietRecord />} />
-            <Route path="recommendations" element={<Recommendations />} />
-            <Route path="weight-loss" element={<WeightLoss />} />
-            <Route path="summer-recipes" element={<SummerRecipes />} />
-            <Route path="taste-analysis" element={<TasteAnalysis />} />
-            <Route path="social" element={<Social />} />
-            <Route path="reports" element={<Reports />} />
-            <Route path="profile" element={<Profile />} />
-          </Route>
-        </Routes>
+        <Suspense fallback={<PageLoader text="页面加载中..." />}>
+          <Routes>
+            {/* 认证相关路由 - 不使用Layout */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/auth/qq/demo" element={<QQDemo />} />
+            <Route path="/auth/wechat/demo" element={<WechatDemo />} />
+            
+            {/* 应用主要路由 - 使用Layout和认证保护 */}
+            <Route path="/" element={
+              <ProtectedRoute>
+                <Layout />
+              </ProtectedRoute>
+            }>
+              <Route index element={<Home />} />
+              <Route path="dishes" element={<Dishes />} />
+              <Route path="dishes/:id" element={<DishDetail />} />
+              <Route path="diet-record" element={<DietRecord />} />
+              <Route path="recommendations" element={<Recommendations />} />
+              <Route path="weight-loss" element={<WeightLoss />} />
+              <Route path="summer-recipes" element={<SummerRecipes />} />
+              <Route path="taste-analysis" element={<TasteAnalysis />} />
+              <Route path="social" element={<Social />} />
+              <Route path="reports" element={<Reports />} />
+              <Route path="profile" element={<Profile />} />
+              <Route path="dish-management" element={<DishManagement />} />
+            </Route>
+          </Routes>
+        </Suspense>
       </Router>
       <Toaster 
         position="top-right"
@@ -126,6 +134,6 @@ export default function App() {
           </div>
         </div>
       )}
-    </>
+    </ErrorBoundary>
   );
 }

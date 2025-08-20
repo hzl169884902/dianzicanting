@@ -1,20 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Mail, Lock, Smartphone, QrCode } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, Smartphone, QrCode, User } from 'lucide-react';
 import { useAuthStore } from '../store/auth';
 import { toast } from 'sonner';
 import { uiLog } from '../utils/logger';
+import OneClickLogin from '../components/OneClickLogin';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [loginMethod, setLoginMethod] = useState<'email' | 'phone'>('email');
+  const [loginMethod, setLoginMethod] = useState<'email' | 'phone' | 'username'>('username');
   const [phone, setPhone] = useState('');
   const [smsCode, setSmsCode] = useState('');
   const [smsCodeSent, setSmsCodeSent] = useState(false);
   const [smsCountdown, setSmsCountdown] = useState(0);
+  const [username, setUsername] = useState('');
   const [localError, setLocalError] = useState('');
   const { signIn, error, sendSMSCode, verifySMSCode, getQQLoginUrl, getWechatLoginUrl, createDemoAccount, loading } = useAuthStore();
   const navigate = useNavigate();
@@ -47,6 +49,44 @@ const Login = () => {
       return () => clearTimeout(timer);
     }
   }, [localError]);
+  // 用户名登录处理
+  const handleUsernameLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    uiLog.info('用户尝试用户名登录', { username });
+    
+    if (!username || !password) {
+      const errorMessage = '请输入用户名和密码';
+      uiLog.warn('用户名登录表单验证失败', { username, hasPassword: !!password });
+      setLocalError(errorMessage);
+      return;
+    }
+
+    setIsLoading(true);
+    setLocalError('');
+    
+    try {
+      // 使用用户名作为邮箱进行登录（后端需要支持用户名登录）
+      const result = await signIn(username, password);
+      if (result.success) {
+        uiLog.info('用户名登录成功', { username });
+        toast.success('登录成功！');
+        navigate('/');
+      } else {
+        uiLog.error('用户名登录失败', { username, error: result.error });
+        setLocalError(result.error || '登录失败');
+        toast.error(result.error || '登录失败');
+      }
+    } catch (err) {
+      console.error('登录失败:', err);
+      const errorMsg = err instanceof Error ? err.message : '登录失败，请稍后重试';
+      uiLog.error('用户名登录异常', { username, error: errorMsg }, err instanceof Error ? err : undefined);
+      setLocalError(errorMsg);
+      toast.error(errorMsg);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // 邮箱登录处理
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -298,6 +338,18 @@ const Login = () => {
         <div className="flex bg-gray-100 rounded-lg p-1">
           <button
             type="button"
+            onClick={() => setLoginMethod('username')}
+            className={`flex-1 flex items-center justify-center py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+              loginMethod === 'username'
+                ? 'bg-white text-indigo-600 shadow-sm'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            <User className="w-4 h-4 mr-2" />
+            用户名登录
+          </button>
+          <button
+            type="button"
             onClick={() => setLoginMethod('email')}
             className={`flex-1 flex items-center justify-center py-2 px-4 rounded-md text-sm font-medium transition-colors ${
               loginMethod === 'email'
@@ -323,6 +375,69 @@ const Login = () => {
         </div>
 
         <div className="bg-white py-8 px-6 shadow-xl rounded-lg">
+          {/* 用户名登录表单 */}
+          {loginMethod === 'username' && (
+            <form onSubmit={handleUsernameLogin} className="space-y-6">
+              <div>
+                <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+                  用户名
+                </label>
+                <div className="mt-1 relative">
+                  <input
+                    id="username"
+                    type="text"
+                    required
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    className="appearance-none block w-full px-3 py-2 pl-10 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    placeholder="请输入用户名（如：18171629175）"
+                  />
+                  <User className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="username-password" className="block text-sm font-medium text-gray-700">
+                  密码
+                </label>
+                <div className="mt-1 relative">
+                  <input
+                    id="username-password"
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="appearance-none block w-full px-3 py-2 pl-10 pr-10 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    placeholder="请输入密码"
+                  />
+                  <Lock className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+
+
+
+              <button
+                type="submit"
+                disabled={(isLoading || loading) || !username || !password}
+                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {(isLoading || loading) ? (
+                  <div className="flex items-center">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    登录中...
+                  </div>
+                ) : '登录'}
+              </button>
+            </form>
+          )}
+
           {/* 邮箱登录表单 */}
           {loginMethod === 'email' && (
             <form onSubmit={handleEmailLogin} className="space-y-6">
@@ -461,6 +576,9 @@ const Login = () => {
             </div>
           )}
 
+          {/* 2025年最新一键登录 */}
+          <OneClickLogin onSuccess={() => navigate('/')} />
+
           {/* 分割线 */}
           <div className="mt-6">
             <div className="relative">
@@ -468,7 +586,7 @@ const Login = () => {
                 <div className="w-full border-t border-gray-300" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">或者使用</span>
+                <span className="px-2 bg-white text-gray-500">传统登录方式</span>
               </div>
             </div>
           </div>
@@ -478,74 +596,22 @@ const Login = () => {
             <button
               type="button"
               onClick={handleQQLogin}
-              className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+              className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors"
             >
               <QrCode className="h-5 w-5 text-blue-500" />
-              <span className="ml-2">QQ登录</span>
+              <span className="ml-2">QQ扫码登录</span>
             </button>
             <button
               type="button"
               onClick={handleWeChatLogin}
-              className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+              className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors"
             >
               <QrCode className="h-5 w-5 text-green-500" />
-              <span className="ml-2">微信登录</span>
+              <span className="ml-2">微信扫码登录</span>
             </button>
           </div>
 
-          {/* 演示账户 */}
-          <div className="mt-6 space-y-3">
-            <button
-              type="button"
-              onClick={handleCreateDemoAccount}
-              disabled={isLoading || loading}
-              className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-gray-50 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              {(isLoading || loading) ? (
-                <div className="flex items-center">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600 mr-2"></div>
-                  创建中...
-                </div>
-              ) : '创建演示账户'}
-            </button>
-            
-            {/* 一键登录演示账户 */}
-            <div className="grid grid-cols-3 gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setEmail('test@example.com');
-                  setPassword('test123456');
-                  setLoginMethod('email');
-                }}
-                className="px-3 py-2 text-xs bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors"
-              >
-                测试账户
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setEmail('demo@example.com');
-                  setPassword('demo123456');
-                  setLoginMethod('email');
-                }}
-                className="px-3 py-2 text-xs bg-green-100 text-green-700 rounded-md hover:bg-green-200 transition-colors"
-              >
-                演示账户
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setEmail('admin@example.com');
-                  setPassword('admin123456');
-                  setLoginMethod('email');
-                }}
-                className="px-3 py-2 text-xs bg-purple-100 text-purple-700 rounded-md hover:bg-purple-200 transition-colors"
-              >
-                管理员
-              </button>
-            </div>
-          </div>
+
         </div>
 
         {/* 注册链接 */}

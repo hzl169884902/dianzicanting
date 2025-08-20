@@ -1,0 +1,8 @@
+-- Add final 4 dishes to reach 1000 total
+-- Fixed to match actual dishes table structure (removed price and brand_id fields)
+
+INSERT INTO dishes (name, description, image_url, category_id, nutrition_facts, avg_rating, review_count, popularity_score) VALUES
+('6A减脂餐-晚餐11', '低卡路里晚餐，富含蛋白质和纤维，适合减脂期间食用', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=healthy%20dinner%20meal%20grilled%20chicken%20vegetables&image_size=square', (SELECT id FROM categories WHERE name = '健康轻食' LIMIT 1), '{"calories": 320, "protein": 28, "carbs": 15, "fat": 8, "fiber": 6}', 4.6, 85, 88),
+('6A减脂餐-晚餐12', '营养均衡的晚餐，低脂高蛋白，促进新陈代谢', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=healthy%20dinner%20salmon%20quinoa%20broccoli&image_size=square', (SELECT id FROM categories WHERE name = '健康轻食' LIMIT 1), '{"calories": 310, "protein": 26, "carbs": 18, "fat": 9, "fiber": 5}', 4.7, 92, 90),
+('6A减脂餐-加餐11', '健康加餐，补充能量，控制热量摄入', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=healthy%20snack%20greek%20yogurt%20berries&image_size=square', (SELECT id FROM categories WHERE name = '健康轻食' LIMIT 1), '{"calories": 150, "protein": 12, "carbs": 8, "fat": 4, "fiber": 3}', 4.5, 78, 85),
+('6A减脂餐-加餐12', '低卡路里加餐，富含维生素和矿物质', 'https://trae-api-us.mchost.guru/api/ide/v1/text_to_image?prompt=healthy%20snack%20mixed%20nuts%20fruit&image_size=square', (SELECT id FROM categories WHERE name = '健康轻食' LIMIT 1), '{"calories": 140, "protein": 8, "carbs": 12, "fat": 6, "fiber": 4}', 4.4, 65, 82);

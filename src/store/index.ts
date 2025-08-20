@@ -38,8 +38,8 @@ interface AppState {
   setError: (error: string | null) => void;
   
   // API Actions
-  fetchDishes: () => Promise<void>;
-  fetchCategories: () => Promise<void>;
+  fetchDishes: () => Promise<Dish[]>;
+  fetchCategories: () => Promise<Category[]>;
   fetchBrands: () => Promise<void>;
   fetchDietRecords: (date?: string) => Promise<void>;
   addDietRecord: (record: Omit<DietRecord, 'id' | 'created_at'>) => Promise<void>;
@@ -108,8 +108,10 @@ export const useAppStore = create<AppState>((set, get) => ({
       })) || [];
       
       set({ dishes: dishesWithRating });
+      return dishesWithRating;
     } catch (error) {
       set({ error: error instanceof Error ? error.message : '获取菜品失败' });
+      return [];
     } finally {
       set({ loading: false });
     }
@@ -124,8 +126,10 @@ export const useAppStore = create<AppState>((set, get) => ({
       
       if (error) throw error;
       set({ categories: data || [] });
+      return data || [];
     } catch (error) {
       set({ error: error instanceof Error ? error.message : '获取分类失败' });
+      return [];
     }
   },
 

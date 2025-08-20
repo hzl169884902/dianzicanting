@@ -4,7 +4,16 @@ import { useAppStore } from '../store';
 import { StarIcon } from '@heroicons/react/24/solid';
 import { StarIcon as StarOutlineIcon, FunnelIcon } from '@heroicons/react/24/outline';
 import OptimizedImage from '../components/OptimizedImage';
-import type { Dish } from '@/lib/supabase';
+import type { Dish } from '../types/dish';
+import { 
+  deduplicateDishes, 
+  processImageUrl, 
+  searchDishes, 
+  filterDishesByCategory, 
+  filterDishesByBrand, 
+  sortDishes,
+  cleanDishData
+} from '../utils/dishUtils';
 
 export default function Dishes() {
   const [searchParams] = useSearchParams();
@@ -30,10 +39,32 @@ export default function Dishes() {
   } = useAppStore();
 
   const [showFilters, setShowFilters] = useState(false);
+  const [deduplicationReport, setDeduplicationReport] = useState<string>('');
+
+  // 应用高级去重算法的数据获取函数
+  const fetchDishesWithAdvancedDeduplication = async () => {
+    try {
+      // 获取原始数据
+      await fetchDishes();
+      await fetchCategories();
+      await fetchBrands();
+      
+      // 清理和去重菜品数据
+      const cleanedDishes = cleanDishData(dishes);
+      const { dishes: deduplicatedDishes, report } = deduplicateDishes(cleanedDishes);
+      
+      setDeduplicationReport(report);
+      console.log('菜品去重报告:', report);
+      
+      // 注意：这里不直接修改store中的dishes，而是在渲染时应用去重
+      console.log(`原始菜品数量: ${dishes.length}, 去重后数量: ${deduplicatedDishes.length}`);
+    } catch (error) {
+      console.error('获取菜品数据失败:', error);
+    }
+  };
 
   useEffect(() => {
-    fetchDishes();
-    fetchCategories();
+    fetchDishesWithAdvancedDeduplication();
     fetchBrands();
     
     // 处理URL搜索参数
@@ -50,47 +81,29 @@ export default function Dishes() {
     if (search) {
       setSearchQuery(search);
     }
-  }, [fetchDishes, fetchCategories, fetchBrands, searchParams, setSelectedCategory, setSelectedBrand, setSearchQuery]);
+  }, [searchParams, setSelectedCategory, setSelectedBrand, setSearchQuery]);
 
-  // 过滤和排序菜品
-  const filteredAndSortedDishes = dishes
-    .filter(dish => {
-      const matchesCategory = !selectedCategory || dish.category_id === selectedCategory;
-      const matchesSearch = !searchQuery || 
-        dish.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        dish.description.toLowerCase().includes(searchQuery.toLowerCase());
-      return matchesCategory && matchesSearch;
-    })
-    .sort((a, b) => {
-      let aValue: any, bValue: any;
-      
-      switch (sortBy) {
-        case 'name':
-          aValue = a.name;
-          bValue = b.name;
-          break;
-        case 'rating':
-          aValue = a.avg_rating || 0;
-          bValue = b.avg_rating || 0;
-          break;
-        case 'calories':
-          aValue = a.nutrition_facts?.calories || 0;
-          bValue = b.nutrition_facts?.calories || 0;
-          break;
-        case 'created_at':
-          aValue = new Date(a.created_at);
-          bValue = new Date(b.created_at);
-          break;
-        default:
-          return 0;
-      }
-      
-      if (sortOrder === 'asc') {
-        return aValue > bValue ? 1 : -1;
-      } else {
-        return aValue < bValue ? 1 : -1;
-      }
-    });
+  // 应用去重、过滤和排序
+  const processedDishes = (() => {
+    // 1. 清理和去重菜品数据
+    const cleanedDishes = cleanDishData(dishes);
+    const { dishes: deduplicatedDishes } = deduplicateDishes(cleanedDishes);
+    
+    // 2. 应用搜索过滤
+    let filteredDishes = searchDishes(deduplicatedDishes, searchQuery);
+    
+    // 3. 应用类别过滤
+    filteredDishes = filterDishesByCategory(filteredDishes, selectedCategory);
+    
+    // 4. 应用品牌过滤
+    filteredDishes = filterDishesByBrand(filteredDishes, selectedBrand);
+    
+    // 5. 应用排序
+    const sortField = sortBy as 'name' | 'calories' | 'protein';
+    return sortDishes(filteredDishes, sortField);
+  })();
+  
+  const filteredAndSortedDishes = processedDishes;
 
   const renderStars = (rating: number) => {
     const stars = [];
@@ -231,6 +244,18 @@ export default function Dishes() {
         共找到 {filteredAndSortedDishes.length} 道菜品
       </div>
 
+      {/* 开发环境去重报告 */}
+      {process.env.NODE_ENV === 'development' && deduplicationReport && (
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
+          <h3 className="text-lg font-semibold text-blue-800 mb-4">
+            🔧 高级去重报告 (开发环境)
+          </h3>
+          <pre className="text-sm text-blue-700 whitespace-pre-wrap font-mono bg-white p-4 rounded-lg overflow-auto max-h-96">
+            {deduplicationReport}
+          </pre>
+        </div>
+      )}
+
       {/* 菜品网格 */}
       {filteredAndSortedDishes.length === 0 ? (
         <div className="text-center py-12">
@@ -256,7 +281,7 @@ export default function Dishes() {
             >
               <div className="aspect-w-16 aspect-h-9">
                 <OptimizedImage
-                  src={dish.image_url}
+                  src={processImageUrl(dish.image_url)}
                   alt={dish.name}
                   className="w-full h-48 object-cover"
                   lazy={true}
@@ -264,7 +289,7 @@ export default function Dishes() {
               </div>
               <div className="p-4">
                 <h3 className="font-semibold text-gray-900 mb-1">{dish.name}</h3>
-                <p className="text-sm text-gray-600 mb-2 line-clamp-2">{dish.description}</p>
+                <p className="text-sm text-gray-600 mb-2 line-clamp-2">{dish.description || '暂无描述'}</p>
                 
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center space-x-1">
@@ -288,16 +313,18 @@ export default function Dishes() {
                 </div>
                 
                 {/* 品牌信息 */}
-                {dish.brands && (
+                {dish.brands?.name && (
                   <div className="flex items-center space-x-2">
-                    {dish.brands.logo_url && (
-                      <img 
-                        src={dish.brands.logo_url} 
-                        alt={dish.brands.name}
-                        className="w-4 h-4 object-contain"
-                      />
-                    )}
                     <span className="text-xs text-gray-500">{dish.brands.name}</span>
+                  </div>
+                )}
+                
+                {/* 类别信息 */}
+                {(dish.categories?.name || dish.category?.name) && (
+                  <div className="mt-1">
+                    <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+                      {dish.categories?.name || dish.category?.name}
+                    </span>
                   </div>
                 )}
               </div>

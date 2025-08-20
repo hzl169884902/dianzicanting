@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { supabase } from '@/lib/supabase';
 import type { User, Session } from '@supabase/supabase-js';
 import { authLog } from '../utils/logger';
+import { handleAuthError, handleNetworkError, withRetry } from '../utils/errorHandler';
 
 interface UserProfile {
   id: string;
@@ -73,6 +74,12 @@ interface AuthState {
   // Demo accounts
   createDemoAccount: () => Promise<{ success: boolean; email?: string; password?: string; error?: string }>;
 }
+
+// 全局变量存储监听器引用，避免重复注册
+let authStateListener: { data: { subscription: any } } | null = null;
+// 防止重复初始化的标志
+let isInitializing = false;
+let isInitialized = false;
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
@@ -151,70 +158,100 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       
       console.log('尝试登录:', { email, passwordLength: password.length });
       
-      // 优化超时处理，减少等待时间
-      const loginPromise = supabase.auth.signInWithPassword({
-        email: email.trim().toLowerCase(),
-        password,
-      });
-      
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('登录超时，请检查网络连接')), 8000); // 从15秒减少到8秒
-      });
-      
-      const { data, error } = await Promise.race([loginPromise, timeoutPromise]) as any;
-      
-      console.log('登录响应:', { data, error });
-      
-      if (error) {
-        let errorMessage = error.message;
+      // 使用重试机制进行登录请求
+      const result = await withRetry(async () => {
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            username: email.trim(),
+            password,
+          }),
+        });
         
-        // 提供更友好的错误信息
-        if (error.message.includes('Invalid login credentials')) {
-          errorMessage = '邮箱或密码错误，请检查后重试';
-        } else if (error.message.includes('Email not confirmed')) {
-          errorMessage = '请先验证您的邮箱';
-        } else if (error.message.includes('Too many requests')) {
-          errorMessage = '登录尝试过于频繁，请稍后再试';
-        } else if (error.message.includes('登录超时')) {
-          errorMessage = '登录超时，请检查网络连接后重试';
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
         
-        authLog.error('登录失败', { email, error: errorMessage }, error);
-        set({ error: errorMessage });
-        return { success: false, error: errorMessage };
+        return await response.json();
+      }, 2, 1000, '用户登录');
+      
+      console.log('登录响应:', { result });
+      
+      if (!result.success) {
+        const appError = handleAuthError(result.error || '登录失败', '邮箱登录');
+        set({ error: appError.userMessage });
+        return { success: false, error: appError.userMessage };
       }
       
-      if (!data.user || !data.session) {
-        const errorMessage = '登录失败：未获取到用户信息';
+      if (!result.user || !result.token) {
+        const appError = handleAuthError('登录失败：未获取到用户信息', '邮箱登录');
         authLog.warn('登录失败：未返回用户数据', { email });
-        set({ error: errorMessage });
-        return { success: false, error: errorMessage };
+        set({ error: appError.userMessage });
+        return { success: false, error: appError.userMessage };
       }
       
-      authLog.info('登录成功', { userId: data.user.id, email: data.user.email });
-      set({ user: data.user, session: data.session });
+      // 创建模拟的session对象
+      const mockSession = {
+        access_token: result.token,
+        token_type: 'bearer',
+        expires_in: 3600,
+        expires_at: Date.now() + 3600000,
+        refresh_token: result.token,
+        user: {
+          id: result.user.id,
+          email: result.user.email,
+          user_metadata: {
+            name: result.user.name
+          }
+        }
+      };
       
-      // 异步获取用户档案，不阻塞登录流程
-      get().fetchUserProfile().catch(profileError => {
-        authLog.warn('获取用户档案失败', { error: profileError instanceof Error ? profileError.message : 'Unknown error' });
-      });
+      // 创建模拟的user对象
+      const mockUser = {
+        id: result.user.id,
+        email: result.user.email,
+        user_metadata: {
+          name: result.user.name
+        },
+        app_metadata: {},
+        aud: 'authenticated',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+      
+      authLog.info('登录成功', { userId: result.user.id, email: result.user.email });
+      set({ user: mockUser as any, session: mockSession as any });
+      
+      // 设置用户档案
+      const userProfile = {
+        id: result.user.id,
+        email: result.user.email,
+        name: result.user.name,
+        plan: 'free' as const,
+        preferences: {
+          dietType: '均衡饮食',
+          allergies: [],
+          goals: [],
+          notifications: true,
+        },
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+      
+      set({ userProfile });
       
       return { success: true };
     } catch (error) {
       console.error('登录异常:', error);
-      let errorMessage = '登录失败，请稍后重试';
+      const appError = error instanceof Error && error.message.includes('Failed to fetch') 
+        ? handleNetworkError(error, '邮箱登录')
+        : handleAuthError(error instanceof Error ? error : '登录失败，请稍后重试', '邮箱登录');
       
-      if (error instanceof Error) {
-        if (error.message.includes('登录超时')) {
-          errorMessage = '登录超时，请检查网络连接后重试';
-        } else {
-          errorMessage = error.message;
-        }
-      }
-      
-      authLog.error('登录异常', { email, error: errorMessage }, error instanceof Error ? error : undefined);
-      set({ error: errorMessage });
-      return { success: false, error: errorMessage };
+      set({ error: appError.userMessage });
+      return { success: false, error: appError.userMessage };
     } finally {
       set({ loading: false });
     }
@@ -301,34 +338,55 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
   
   fetchUserProfile: async () => {
-    const { user } = get();
-    if (!user) {
+    const { user, session, userProfile } = get();
+    if (!user || !session) {
       authLog.warn('尝试获取用户档案但用户未登录');
+      return;
+    }
+    
+    // 如果已有用户档案，避免重复请求
+    if (userProfile) {
+      authLog.info('用户档案已存在，跳过重复请求', { userId: user.id });
       return;
     }
     
     authLog.info('开始获取用户档案', { userId: user.id });
     
     try {
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', user.id)
-        .single();
+      const response = await fetch('/api/auth/profile', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+      });
       
-      if (error) {
-        authLog.error('获取用户档案失败', { userId: user.id, error: error.message }, error);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const result = await response.json();
+      
+      if (!result.success) {
+        authLog.error('获取用户档案失败', { userId: user.id, error: result.error });
         return;
       }
       
-      set({ userProfile: data });
-      authLog.info('用户档案获取成功', { userId: user.id, hasProfile: !!data });
+      set({ userProfile: result.profile });
+      authLog.info('用户档案获取成功', { userId: user.id, hasProfile: !!result.profile });
     } catch (error) {
       authLog.error('获取用户档案异常', { userId: user.id, error: error instanceof Error ? error.message : 'Unknown error' }, error instanceof Error ? error : undefined);
     }
   },
   
   initialize: async () => {
+    // 防止重复初始化
+    if (isInitializing || isInitialized) {
+      authLog.info('认证已在初始化中或已完成，跳过重复调用');
+      return;
+    }
+    
+    isInitializing = true;
     authLog.info('开始初始化认证状态');
     
     try {
@@ -336,7 +394,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       
       // 添加超时处理，避免长时间卡顿
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('初始化超时')), 5000); // 5秒超时
+        setTimeout(() => reject(new Error('初始化超时')), 10000); // 10秒超时
       });
       
       const sessionPromise = supabase.auth.getSession();
@@ -359,8 +417,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         authLog.info('无有效用户会话');
       }
       
+      // 清理之前的监听器，避免重复注册
+      if (authStateListener) {
+        authStateListener.data.subscription.unsubscribe();
+        authStateListener = null;
+      }
+      
       // 监听认证状态变化
-      supabase.auth.onAuthStateChange(async (event, session) => {
+      authStateListener = supabase.auth.onAuthStateChange(async (event, session) => {
+        authLog.info('认证状态变化', { event, userId: session?.user?.id });
         set({ user: session?.user || null, session });
         
         if (session?.user) {
@@ -374,6 +439,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({ user: null, error: null }); // 静默处理错误，避免影响用户体验
     } finally {
       set({ loading: false });
+      isInitializing = false;
+      isInitialized = true;
       authLog.info('认证状态初始化完成');
     }
   },
@@ -589,7 +656,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     
     try {
       // 检查是否配置了真实的QQ AppID
-      const appId = process.env.VITE_QQ_APP_ID || 'demo_qq_app_id';
+      const appId = import.meta.env.VITE_QQ_APP_ID || 'demo_qq_app_id';
       const redirectUri = encodeURIComponent(`${window.location.origin}/auth/qq/callback`);
       const state = Math.random().toString(36).substring(2);
       
@@ -619,7 +686,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     
     try {
       // 检查是否配置了真实的微信AppID
-      const appId = process.env.VITE_WECHAT_APP_ID || 'demo_wechat_app_id';
+      const appId = import.meta.env.VITE_WECHAT_APP_ID || 'demo_wechat_app_id';
       const redirectUri = encodeURIComponent(`${window.location.origin}/auth/wechat/callback`);
       const state = Math.random().toString(36).substring(2);
       
@@ -656,95 +723,85 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         return { success: false, error: errorMessage };
       }
       
-      // 检查是否为演示模式
-      const isDemo = code === 'demo_code';
-      let qqUserInfo;
+      // 调用后端API进行QQ登录
+      const response = await fetch('/api/auth/qq', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ code }),
+      });
       
-      if (isDemo) {
-        // 演示模式，使用模拟数据
-        qqUserInfo = {
-          openid: `qq_demo_${Date.now()}`,
-          nickname: 'QQ演示用户',
-          figureurl_qq_1: 'https://via.placeholder.com/100x100?text=QQ'
-        };
-        console.log('QQ演示登录模式，用户信息:', qqUserInfo);
-      } else {
-        // 真实模式，调用QQ API（需要配置真实的AppID和AppSecret）
-        try {
-          // 这里应该调用真实的QQ API
-          // 由于没有真实配置，我们提供友好的错误提示
-          throw new Error('QQ登录需要配置真实的AppID和AppSecret');
-        } catch (apiError) {
-          console.error('QQ API调用失败:', apiError);
-          const errorMessage = 'QQ登录配置错误，请联系管理员或使用其他登录方式';
-          set({ error: errorMessage });
-          return { success: false, error: errorMessage };
-        }
+      const result = await response.json();
+      
+      if (!result.success) {
+        const errorMessage = result.error || 'QQ登录失败';
+        set({ error: errorMessage });
+        return { success: false, error: errorMessage };
       }
       
-      // 检查是否已有关联账户
-      const { data: existingUser } = await supabase
-        .from('users')
-        .select('*')
-        .eq('qq_openid', qqUserInfo.openid)
-        .single();
-      
-      if (existingUser) {
-        // 已有关联账户，直接登录
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: existingUser.email,
-          password: 'qq_login_' + qqUserInfo.openid // 使用特殊密码
-        });
-        
-        if (error) {
-          console.error('QQ登录失败:', error);
-          const errorMessage = 'QQ登录失败，请稍后重试';
-          set({ error: errorMessage });
-          return { success: false, error: errorMessage };
-        }
-        
-        return { success: true };
-      } else {
-        // 创建新账户
-        const email = `qq_${qqUserInfo.openid}@temp.com`;
-        const password = 'qq_login_' + qqUserInfo.openid;
-        
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: {
-              name: qqUserInfo.nickname,
-              avatar_url: qqUserInfo.figureurl_qq_1,
-              qq_openid: qqUserInfo.openid
-            }
+      // 创建模拟的session和user对象
+      const mockSession = {
+        access_token: result.token,
+        token_type: 'bearer',
+        expires_in: 3600,
+        expires_at: Date.now() + 3600000,
+        refresh_token: result.token,
+        user: {
+          id: result.user.id,
+          email: result.user.email,
+          user_metadata: {
+            name: result.user.name,
+            avatar_url: result.user.avatar
           }
-        });
-        
-        if (error) {
-          console.error('QQ注册失败:', error);
-          const errorMessage = 'QQ登录失败，请稍后重试';
-          set({ error: errorMessage });
-          return { success: false, error: errorMessage };
         }
-        
-        // 记录第三方登录信息
-        if (data.user) {
-          await supabase.from('third_party_logins').insert({
-            user_id: data.user.id,
-            provider: 'qq',
-            provider_user_id: qqUserInfo.openid,
-            user_info: qqUserInfo
-          });
-        }
-        
-        return { success: true };
-      }
+      };
+      
+      const mockUser = {
+        id: result.user.id,
+        email: result.user.email,
+        user_metadata: {
+          name: result.user.name,
+          avatar_url: result.user.avatar
+        },
+        app_metadata: {},
+        aud: 'authenticated',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+      
+      set({ user: mockUser as any, session: mockSession as any });
+      
+      // 设置用户档案
+      const userProfile = {
+        id: result.user.id,
+        email: result.user.email,
+        name: result.user.name,
+        plan: 'free' as const,
+        preferences: {
+          dietType: '均衡饮食',
+          allergies: [],
+          goals: [],
+          notifications: true,
+        },
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+      
+      set({ userProfile });
+      
+      // 清除OAuth state
+      localStorage.removeItem('qq_oauth_state');
+      
+      return { success: true };
     } catch (error) {
       console.error('QQ登录异常:', error);
-      const errorMessage = error instanceof Error ? error.message : 'QQ登录失败';
-      set({ error: errorMessage });
-      return { success: false, error: errorMessage };
+      const appError = error instanceof Error && error.message.includes('Failed to fetch') 
+        ? handleNetworkError(error, 'QQ登录')
+        : handleAuthError(error instanceof Error ? error : 'QQ登录失败，请稍后重试', 'QQ登录');
+      
+      set({ error: appError.userMessage });
+      return { success: false, error: appError.userMessage };
     } finally {
       set({ loading: false });
       localStorage.removeItem('qq_oauth_state');
@@ -763,98 +820,87 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         return { success: false, error: errorMessage };
       }
       
-      // 检查是否为演示模式
-      const isDemo = code === 'demo_code';
-      let wechatUserInfo;
+      // 调用后端API进行微信登录
+      const response = await fetch('/api/auth/wechat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ code }),
+      });
       
-      if (isDemo) {
-        // 演示模式，使用模拟数据
-        wechatUserInfo = {
-          openid: `wechat_demo_${Date.now()}`,
-          nickname: '微信演示用户',
-          headimgurl: 'https://via.placeholder.com/100x100?text=WeChat'
-        };
-        console.log('微信演示登录模式，用户信息:', wechatUserInfo);
-      } else {
-        // 真实模式，调用微信API（需要配置真实的AppID和AppSecret）
-        try {
-          // 这里应该调用真实的微信API
-          // 由于没有真实配置，我们提供友好的错误提示
-          throw new Error('微信登录需要配置真实的AppID和AppSecret');
-        } catch (apiError) {
-          console.error('微信API调用失败:', apiError);
-          const errorMessage = '微信登录配置错误，请联系管理员或使用其他登录方式';
-          set({ error: errorMessage });
-          return { success: false, error: errorMessage };
-        }
+      const result = await response.json();
+      
+      if (!result.success) {
+        const errorMessage = result.error || '微信登录失败';
+        set({ error: errorMessage });
+        return { success: false, error: errorMessage };
       }
       
-      // 检查是否已有关联账户
-      const { data: existingUser } = await supabase
-        .from('users')
-        .select('*')
-        .eq('wechat_openid', wechatUserInfo.openid)
-        .single();
-      
-      if (existingUser) {
-        // 已有关联账户，直接登录
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: existingUser.email,
-          password: 'wechat_login_' + wechatUserInfo.openid
-        });
-        
-        if (error) {
-          console.error('微信登录失败:', error);
-          const errorMessage = '微信登录失败，请稍后重试';
-          set({ error: errorMessage });
-          return { success: false, error: errorMessage };
-        }
-        
-        return { success: true };
-      } else {
-        // 创建新账户
-        const email = `wechat_${wechatUserInfo.openid}@temp.com`;
-        const password = 'wechat_login_' + wechatUserInfo.openid;
-        
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: {
-              name: wechatUserInfo.nickname,
-              avatar_url: wechatUserInfo.headimgurl,
-              wechat_openid: wechatUserInfo.openid
-            }
+      // 创建模拟的session和user对象
+      const mockSession = {
+        access_token: result.token,
+        token_type: 'bearer',
+        expires_in: 3600,
+        expires_at: Date.now() + 3600000,
+        refresh_token: result.token,
+        user: {
+          id: result.user.id,
+          email: result.user.email,
+          user_metadata: {
+            name: result.user.name,
+            avatar_url: result.user.avatar
           }
-        });
-        
-        if (error) {
-          console.error('微信注册失败:', error);
-          const errorMessage = '微信登录失败，请稍后重试';
-          set({ error: errorMessage });
-          return { success: false, error: errorMessage };
         }
-        
-        // 记录第三方登录信息
-        if (data.user) {
-          await supabase.from('third_party_logins').insert({
-            user_id: data.user.id,
-            provider: 'wechat',
-            provider_user_id: wechatUserInfo.openid,
-            user_info: wechatUserInfo
-          });
-        }
-        
-        return { success: true };
-      }
+      };
+      
+      const mockUser = {
+        id: result.user.id,
+        email: result.user.email,
+        user_metadata: {
+          name: result.user.name,
+          avatar_url: result.user.avatar
+        },
+        app_metadata: {},
+        aud: 'authenticated',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+      
+      set({ user: mockUser as any, session: mockSession as any });
+      
+      // 设置用户档案
+      const userProfile = {
+        id: result.user.id,
+        email: result.user.email,
+        name: result.user.name,
+        plan: 'free' as const,
+        preferences: {
+          dietType: '均衡饮食',
+          allergies: [],
+          goals: [],
+          notifications: true,
+        },
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+      
+      set({ userProfile });
+      
+      // 清除OAuth state
+      localStorage.removeItem('wechat_oauth_state');
+      
+      return { success: true };
     } catch (error) {
       console.error('微信登录异常:', error);
-      const errorMessage = error instanceof Error ? error.message : '微信登录失败';
-      set({ error: errorMessage });
-      return { success: false, error: errorMessage };
+      const appError = error instanceof Error && error.message.includes('Failed to fetch') 
+        ? handleNetworkError(error, '微信登录')
+        : handleAuthError(error instanceof Error ? error : '微信登录失败，请稍后重试', '微信登录');
+      
+      set({ error: appError.userMessage });
+      return { success: false, error: appError.userMessage };
     } finally {
       set({ loading: false });
-      localStorage.removeItem('wechat_oauth_state');
     }
   },
   
