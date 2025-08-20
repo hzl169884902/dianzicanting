@@ -6,9 +6,11 @@
 ## 🎯 解决方案：配置Supabase允许域名
 
 ### 步骤1：获取Vercel部署域名
+✅ **你的域名已确认**：`dianzicanting520.vercel.app`
+
 1. 登录 [Vercel控制台](https://vercel.com/dashboard)
 2. 找到你的项目，复制部署域名
-3. 格式通常为：`https://你的项目名.vercel.app`
+3. 你的具体域名：`https://dianzicanting520.vercel.app`
 
 ### 步骤2：配置Supabase域名
 1. **登录Supabase控制台**
@@ -21,16 +23,16 @@
 
 3. **配置Site URL**
    ```
-   Site URL: https://你的项目名.vercel.app
+   Site URL: https://dianzicanting520.vercel.app
    ```
    
 4. **配置Redirect URLs**
    添加以下URL（每行一个）：
    ```
-   https://你的项目名.vercel.app
-   https://你的项目名.vercel.app/**
-   https://你的项目名.vercel.app/login
-   https://你的项目名.vercel.app/register
+   https://dianzicanting520.vercel.app
+   https://dianzicanting520.vercel.app/**
+   https://dianzicanting520.vercel.app/login
+   https://dianzicanting520.vercel.app/register
    ```
 
 5. **保存配置**
@@ -50,7 +52,7 @@ Supabase Dashboard
 ### 2. Site URL配置
 ```
 字段名：Site URL
-填入值：https://dianzicanting.vercel.app
+填入值：https://dianzicanting520.vercel.app
 说明：这是你的主域名，用户登录后的默认跳转地址
 ```
 
@@ -58,10 +60,10 @@ Supabase Dashboard
 ```
 字段名：Redirect URLs
 填入值：
-https://dianzicanting.vercel.app
-https://dianzicanting.vercel.app/**
-https://dianzicanting.vercel.app/login
-https://dianzicanting.vercel.app/register
+https://dianzicanting520.vercel.app
+https://dianzicanting520.vercel.app/**
+https://dianzicanting520.vercel.app/login
+https://dianzicanting520.vercel.app/register
 
 说明：这些是允许的重定向地址，** 表示允许所有子路径
 ```
@@ -91,16 +93,16 @@ http://127.0.0.1:5173/**
 ## ⚠️ 常见错误
 
 ### 错误1：忘记添加通配符
-❌ 错误：`https://dianzicanting.vercel.app`
-✅ 正确：`https://dianzicanting.vercel.app/**`
+❌ 错误：`https://dianzicanting520.vercel.app`
+✅ 正确：`https://dianzicanting520.vercel.app/**`
 
 ### 错误2：协议不匹配
-❌ 错误：`http://dianzicanting.vercel.app`（http）
-✅ 正确：`https://dianzicanting.vercel.app`（https）
+❌ 错误：`http://dianzicanting520.vercel.app`（http）
+✅ 正确：`https://dianzicanting520.vercel.app`（https）
 
 ### 错误3：域名拼写错误
-❌ 错误：`https://dianzicanting.vercel.com`（.com）
-✅ 正确：`https://dianzicanting.vercel.app`（.app）
+❌ 错误：`https://dianzicanting520.vercel.com`（.com）
+✅ 正确：`https://dianzicanting520.vercel.app`（.app）
 
 ## 🧪 验证配置
 
