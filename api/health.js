@@ -24,9 +24,10 @@ export default function handler(req, res) {
   }
   
   if (req.method === 'POST') {
-    res.status(405).json({
-      success: false,
-      message: 'Method not allowed. Use GET for health check.'
+    res.status(200).json({
+      success: true,
+      message: 'ok',
+      timestamp: new Date().toISOString()
     });
     return;
   }
